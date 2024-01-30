@@ -3,10 +3,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
-
-//import 'package:video_player/video_player.dart';
-import 'package:while_app/resources/components/communities/resource_image_viewer.dart';
-//import 'package:while_app/resources/components/communities/resource_video_viewer.dart';
+import 'package:while_app/resources/components/communities/resources/imageview.dart';
+import 'package:while_app/resources/components/communities/resources/videoplay.dart';
+import 'package:while_app/resources/components/communities/resources/pdfview.dart';
+import 'package:while_app/resources/components/communities/resources/resource_image_viewer.dart';
 
 class CommunityDetailResources extends StatefulWidget {
   const CommunityDetailResources({Key? key}) : super(key: key);
@@ -184,18 +184,24 @@ class CommunityDetailResourcesState extends State<CommunityDetailResources> {
           Navigator.push(
             context,
             MaterialPageRoute(
-                  builder: (context) => ImageViewer(resource['url'], resource['title']),
+                  builder: (context) => ImageDekhlo(url: resource['url'], //resource['title']
+                  ),
             ),
           );
-        // } else if (resource['type'] == 'mp4') {
-        //   Navigator.push(
-        //     context,
-        //     MaterialPageRoute(
-        //       builder: (context) => VideoViewer(resource['url']),
-        //     ),
-        //   );
-        // } else {
-          // Handle other resource types (e.g., PDFs)
+         } else if (resource['type'] == 'mp4') {
+           Navigator.push(
+             context,
+             MaterialPageRoute(
+               builder: (context) => videoplay(url: resource['url']),
+             ),
+           );
+         } else if (resource['type'] == 'pdf') {
+          Navigator.push(
+             context,
+             MaterialPageRoute(
+               builder: (context) => pdfview(url: resource['url']),
+             ),
+           );
         }
                     },
                   ),
