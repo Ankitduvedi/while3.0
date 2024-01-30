@@ -1,16 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'dart:developer';
 import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'package:image_picker/image_picker.dart';
-import 'package:while_app/resources/components/message/models/chat_user.dart';
-
+import 'package:com.example.while_app/resources/components/message/models/chat_user.dart';
 import '../../../main.dart';
 import '../message/apis.dart';
 import '../message/helper/dialogs.dart';
@@ -18,7 +14,7 @@ import '../message/models/community_user.dart';
 
 //profile screen -- to show signed in user info
 class ProfileScreen extends StatefulWidget {
-  final CommunityUser user;
+  final Community user;
 
   const ProfileScreen({super.key, required this.user});
 
@@ -40,18 +36,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     String designation = "";
     List<ChatUser> list = [];
-    final CommunityUser community = CommunityUser(
-        image: '',
-        about: '',
-        name: '',
-        createdAt: '',
-        id: widget.user.id,
-        email: '',
-        type: 'type',
-        noOfUsers: 'noOfUsers',
-        domain: 'domain',
-        timeStamp: '',
-        admin: 'admin');
+    final Community community = Community.empty();
+    community.id = widget.user.id;
     return GestureDetector(
       // for hiding keyboard
       onTap: () => FocusScope.of(context).unfocus(),
@@ -80,7 +66,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         //profile picture
                         _image != null
                             ?
-
                             //local image
                             ClipRRect(
                                 borderRadius:
@@ -90,7 +75,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     height: mq.height * .2,
                                     fit: BoxFit.cover))
                             :
-
                             //image from server
                             ClipRRect(
                                 borderRadius:
@@ -229,11 +213,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(
                       height: 20,
                     ),
-                    const Align(
+
+                    Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Participants',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Participants',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 18),
+                          ),
+                          // Add participants
+                          TextButton.icon(
+                            style: ElevatedButton.styleFrom(
+                                shape: const StadiumBorder(),
+                                minimumSize:
+                                    Size(mq.width * .2, mq.height * .02)),
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                _formKey.currentState!.save();
+                                log(community.toJson().toString());
+                                APIs.updateCommunityInfo(community)
+                                    .then((value) {
+                                  Dialogs.showSnackbar(
+                                      context, 'Profile Updated Successfully!');
+                                });
+                              }
+                            },
+                            label: const Text('Add Participants',
+                                style: TextStyle(fontSize: 16)),
+                            icon: const Icon(CupertinoIcons.person_add_solid,
+                                size: 28),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(

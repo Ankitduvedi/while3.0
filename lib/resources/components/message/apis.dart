@@ -3,12 +3,12 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart';
-// import 'package:while_app/data/model/message.dart';
-import 'package:while_app/resources/components/message/models/chat_user.dart';
-import 'package:while_app/resources/components/message/models/classroom_user.dart';
+import 'package:com.example.while_app/resources/components/message/models/chat_user.dart';
+import 'package:com.example.while_app/resources/components/message/models/classroom_user.dart';
 import 'models/community_message.dart';
 import 'models/community_user.dart';
 import 'models/message.dart';
@@ -26,25 +26,7 @@ class APIs {
   static FirebaseStorage storage = FirebaseStorage.instance;
 
   // for storing self information
-  static ChatUser me = ChatUser(
-    id: user.uid,
-    name: user.displayName.toString(),
-    email: user.email.toString(),
-    about: "Hey, I'm using While",
-    image: userImage,
-    createdAt: '',
-    isOnline: false,
-    lastActive: '',
-    pushToken: '',
-    dateOfBirth: '',
-    gender: '',
-    phoneNumber: '',
-    place: '',
-    profession: '',
-    designation: 'Member',
-    follower: 0,
-    following: 0,
-  );
+  static ChatUser me = ChatUser.empty();
 
   // to return current user
   static User get user => auth.currentUser!;
@@ -213,7 +195,26 @@ class APIs {
   }
 
   static Future<bool> addUserToCommunity(String id) async {
-    firestore
+    await firestore
+        .collection('communities')
+        .doc(id)
+        .collection('participants')
+        .doc(user.uid)
+        .set(APIs.me.toJson())
+        .then((value) => firestore
+                .collection('communities')
+                .doc(id)
+                .collection('participants')
+                .doc(user.uid)
+                .update({
+              'easyQuestions': 0,
+              'mediumQuestions': 0,
+              'hardQuestions': 0,
+              'attemptedEasyQuestion': 0,
+              'attemptedMediumQuestion': 0,
+              'attemptedHardQuestion': 0,
+            }));
+    await firestore
         .collection('users')
         .doc(user.uid)
         .collection('my_communities')
@@ -221,12 +222,29 @@ class APIs {
         .set({
       'id': id,
     });
+    return true;
+  }
+
+  static Future<bool> updateScore(
+    String id,
+    String scoredLevel,
+    int score,
+    int usertotalScore,
+    String attemptedLevel,
+    int attempted,
+  ) async {
     firestore
         .collection('communities')
         .doc(id)
         .collection('participants')
         .doc(user.uid)
-        .set(me.toJson());
+        .update({
+      scoredLevel: score,
+      attemptedLevel: attempted,
+    });
+    firestore.collection('users').doc(APIs.me.id).update({
+      scoredLevel: usertotalScore,
+    });
     return true;
   }
 
@@ -250,7 +268,11 @@ class APIs {
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
     final chatUser = ChatUser(
+      lives: 0,
+      easyQuestions: 0,
       id: user.uid,
+      hardQuestions: 0,
+      mediumQuestions: 0,
       name: newUser.name.toString(),
       email: newUser.email.toString(),
       about: newUser.about,
@@ -278,6 +300,10 @@ class APIs {
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
     final chatUser = ChatUser(
+      lives: 0,
+      easyQuestions: 0,
+      hardQuestions: 0,
+      mediumQuestions: 0,
       id: user.uid,
       name: user.displayName.toString(),
       email: user.email.toString(),
@@ -365,20 +391,6 @@ class APIs {
         .collection('my_users')
         .doc(user.uid)
         .set({}).then((value) => sendMessage(chatUser, msg, type));
-  }
-
-  // for updating user information
-  static Future<void> updateUserInfo(ChatUser usersDetail) async {
-    await firestore.collection('users').doc(user.uid).update({
-      'name': usersDetail.name,
-      'about': usersDetail.about,
-      'email': usersDetail.email,
-      'gender': usersDetail.gender,
-      'place': usersDetail.place,
-      'phoneNumber': usersDetail.phoneNumber,
-      'profession': usersDetail.profession,
-      'dateOfBirth': usersDetail.dateOfBirth,
-    });
   }
 
   // update profile picture of user
@@ -618,7 +630,7 @@ class APIs {
 
   //get only last message of a specific community chat
   static Stream<QuerySnapshot<Map<String, dynamic>>> getLastCommunityMessage(
-      CommunityUser user) {
+      Community user) {
     return firestore
         .collection('communities')
         .doc(user.id)
@@ -630,7 +642,7 @@ class APIs {
 
   // for getting all messages of a specific conversation of community from firestore database
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllCommunityMessages(
-      CommunityUser user) {
+      Community user) {
     return firestore
         .collection('communities')
         .doc(user.id)
@@ -641,7 +653,7 @@ class APIs {
 
   // for sending message
   static Future<void> sendCommunityMessage(
-      CommunityUser chatUser, String msg, Types type) async {
+      Community chatUser, String msg, Types type) async {
     //message sending time (also used as id)
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -669,7 +681,7 @@ class APIs {
   }
 
   ///////////////
-  static Future<void> addCommunities(CommunityUser chatUser, File file) async {
+  static Future<void> addCommunities(Community chatUser, File file) async {
     //getting image file extension
     final ext = file.path.split('.').last;
 
@@ -694,7 +706,7 @@ class APIs {
   }
 
   static Future<void> communitySendChatImage(
-      CommunityUser chatUser, File file) async {
+      Community chatUser, File file) async {
     //getting image file extension
     final ext = file.path.split('.').last;
 
@@ -737,7 +749,8 @@ class APIs {
   }
 
   ///// update community info
-  static Future<void> updateCommunityInfo(CommunityUser community) async {
+  static Future<void> updateCommunityInfo(Community community) async {
+    log('function called');
     await firestore.collection('communities').doc(community.id).update({
       'name': community.name,
       'about': community.about,
@@ -748,7 +761,7 @@ class APIs {
 
   //comunity participants info
   static Stream<QuerySnapshot<Map<String, dynamic>>> getCommunityInfo(
-      CommunityUser community) {
+      Community community) {
     return firestore
         .collection('communities')
         .where('id', isEqualTo: community.id)
@@ -756,25 +769,13 @@ class APIs {
   }
 
   //comunity participants info
-  static getCommunityInfos(CommunityUser community) async {
-    CommunityUser ds;
+  static getCommunityInfos(Community community) async {
     firestore
         .collection('communities')
         .doc(community.id)
         .snapshots()
         .map((event) {
-      return ds = CommunityUser(
-          image: event.data()!['image'],
-          about: event.data()!['about'],
-          name: event.data()!['name'],
-          createdAt: event.data()!['createdAt'],
-          id: event.data()!['id'],
-          email: event.data()!['email'],
-          type: event.data()!['type'],
-          noOfUsers: event.data()!['noOfUsers'],
-          domain: event.data()!['domain'],
-          timeStamp: event.data()!['timeStamp'],
-          admin: event.data()!['admin']);
+      return Community.fromJson(event.data()!);
     });
   }
 
@@ -874,5 +875,36 @@ class APIs {
       'email': clas.email,
       'domain': clas.about,
     });
+  }
+
+  ///////////dynamic links
+  static Future<String> shareDynamicLinks(String screen, String url) async {
+    log('function called');
+    final dynamicLinkParams = DynamicLinkParameters(
+      link: Uri.parse("https://while.co.in/app/?screen=/$screen&url=$url"),
+      uriPrefix: "https://while.co.in/app",
+      androidParameters: const AndroidParameters(
+        packageName: "com.example.while_app",
+        //minimumVersion: 20,
+      ),
+      iosParameters: const IOSParameters(
+        bundleId: "com.example.app.ios",
+        appStoreId: "123456789",
+        minimumVersion: "1.0.1",
+      ),
+      googleAnalyticsParameters: const GoogleAnalyticsParameters(
+        source: "While",
+        medium: "social",
+        campaign: "example-promo",
+      ),
+      // socialMetaTagParameters: SocialMetaTagParameters(
+      //   title: "Example of a Dynamic Link",
+      //   imageUrl: Uri.parse("https://example.com/image.png"),
+      // ),
+    );
+    final dynamicLink =
+        await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
+    log(dynamicLink.shortUrl.toString());
+    return dynamicLink.shortUrl.toString();
   }
 }

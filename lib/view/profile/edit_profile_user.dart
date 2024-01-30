@@ -2,48 +2,32 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:com.example.while_app/view_model/providers/user_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:while_app/main.dart';
-import 'package:while_app/resources/components/message/models/chat_user.dart';
-import 'package:while_app/view/home_screen.dart';
+import 'package:com.example.while_app/main.dart';
+import 'package:com.example.while_app/resources/components/message/models/chat_user.dart';
 import '../../resources/components/message/apis.dart';
 import '../../resources/components/message/helper/dialogs.dart';
 
 //profile screen -- to show signed in user info
-class EditUserProfileScreen extends StatefulWidget {
+class EditUserProfileScreen extends ConsumerStatefulWidget {
   const EditUserProfileScreen({super.key});
-
   @override
-  State<EditUserProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<EditUserProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<EditUserProfileScreen> {
+class _ProfileScreenState extends ConsumerState<EditUserProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _image;
 
   @override
   Widget build(BuildContext context) {
-    final ChatUser user = ChatUser(
-      image: APIs.me.image,
-      about: '',
-      name: APIs.me.name,
-      createdAt: '',
-      id: APIs.me.id,
-      email: '',
-      isOnline: true,
-      lastActive: '',
-      pushToken: '',
-      dateOfBirth: '',
-      gender: '',
-      phoneNumber: '',
-      place: '',
-      profession: '',
-      designation: 'Member',
-      follower: 0,
-      following: 0,
-    );
+    final userProvider = ref.watch(userDataProvider);
+    final user = userProvider.userData;
+    final ChatUser updatedUser = user!;
     return GestureDetector(
       // for hiding keyboard
       onTap: () => FocusScope.of(context).unfocus(),
@@ -51,7 +35,7 @@ class _ProfileScreenState extends State<EditUserProfileScreen> {
           //app bar
           appBar: AppBar(
               title: Text(
-            APIs.me.name,
+            user.name,
             style: const TextStyle(color: Colors.black),
           )),
 
@@ -92,7 +76,7 @@ class _ProfileScreenState extends State<EditUserProfileScreen> {
                                   height: mq.height * .2,
                                   filterQuality: FilterQuality.low,
                                   fit: BoxFit.cover,
-                                  imageUrl: APIs.me.image,
+                                  imageUrl: user.image,
                                   errorWidget: (context, url, error) =>
                                       const CircleAvatar(
                                           child: Icon(CupertinoIcons.person)),
@@ -120,7 +104,7 @@ class _ProfileScreenState extends State<EditUserProfileScreen> {
                     SizedBox(height: mq.height * .03),
 
                     // user email label
-                    Text(APIs.me.email,
+                    Text(user.email,
                         style: const TextStyle(
                             color: Colors.black54, fontSize: 16)),
 
@@ -129,8 +113,8 @@ class _ProfileScreenState extends State<EditUserProfileScreen> {
 
                     // name input field
                     TextFormField(
-                      initialValue: APIs.me.name,
-                      onSaved: (val) => user.name = val ?? '',
+                      initialValue: user.name,
+                      onSaved: (val) => updatedUser.name = val ?? '',
                       validator: (val) => val != null && val.isNotEmpty
                           ? null
                           : 'Required Field',
@@ -147,8 +131,8 @@ class _ProfileScreenState extends State<EditUserProfileScreen> {
                     SizedBox(height: mq.height * .02),
                     // email input field
                     TextFormField(
-                      initialValue: APIs.me.email,
-                      onSaved: (val) => user.email = val ?? '',
+                      initialValue: user.email,
+                      onSaved: (val) => updatedUser.email = val ?? '',
                       validator: (val) => val != null && val.isNotEmpty
                           ? null
                           : 'Required Field',
@@ -163,8 +147,8 @@ class _ProfileScreenState extends State<EditUserProfileScreen> {
                     SizedBox(height: mq.height * .02),
                     // phone number input field
                     TextFormField(
-                      initialValue: APIs.me.phoneNumber,
-                      onSaved: (val) => user.phoneNumber = val ?? '',
+                      initialValue: user.phoneNumber,
+                      onSaved: (val) => updatedUser.phoneNumber = val ?? '',
                       validator: (val) => val != null && val.isNotEmpty
                           ? null
                           : 'Required Field',
@@ -179,8 +163,8 @@ class _ProfileScreenState extends State<EditUserProfileScreen> {
                     SizedBox(height: mq.height * .02),
                     // about input field
                     TextFormField(
-                      initialValue: APIs.me.about,
-                      onSaved: (val) => user.about = val ?? '',
+                      initialValue: user.about,
+                      onSaved: (val) => updatedUser.about = val ?? '',
                       validator: (val) => val != null && val.isNotEmpty
                           ? null
                           : 'Required Field',
@@ -196,8 +180,8 @@ class _ProfileScreenState extends State<EditUserProfileScreen> {
 
                     // gender input field
                     TextFormField(
-                      initialValue: APIs.me.gender,
-                      onSaved: (val) => user.gender = val ?? '',
+                      initialValue: user.gender,
+                      onSaved: (val) => updatedUser.gender = val ?? '',
                       validator: (val) => val != null && val.isNotEmpty
                           ? null
                           : 'Required Field',
@@ -213,8 +197,8 @@ class _ProfileScreenState extends State<EditUserProfileScreen> {
 
                     // PLACE  input field
                     TextFormField(
-                      initialValue: APIs.me.place,
-                      onSaved: (val) => user.place = val ?? '',
+                      initialValue: user.place,
+                      onSaved: (val) => updatedUser.place = val ?? '',
                       validator: (val) => val != null && val.isNotEmpty
                           ? null
                           : 'Required Field',
@@ -229,8 +213,8 @@ class _ProfileScreenState extends State<EditUserProfileScreen> {
                     SizedBox(height: mq.height * .02),
                     // profession input field
                     TextFormField(
-                      initialValue: APIs.me.profession,
-                      onSaved: (val) => user.profession = val ?? '',
+                      initialValue: user.profession,
+                      onSaved: (val) => updatedUser.profession = val ?? '',
                       validator: (val) => val != null && val.isNotEmpty
                           ? null
                           : 'Required Field',
@@ -245,8 +229,8 @@ class _ProfileScreenState extends State<EditUserProfileScreen> {
                     SizedBox(height: mq.height * .02),
                     // DOB input field
                     TextFormField(
-                      initialValue: APIs.me.dateOfBirth,
-                      onSaved: (val) => user.dateOfBirth = val ?? '',
+                      initialValue: user.dateOfBirth,
+                      onSaved: (val) => updatedUser.dateOfBirth = val ?? '',
                       validator: (val) => val != null && val.isNotEmpty
                           ? null
                           : 'Required Field',
@@ -271,17 +255,9 @@ class _ProfileScreenState extends State<EditUserProfileScreen> {
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
                           _formKey.currentState!.save();
-                          // log(community.toJson().toString());
-                          APIs.updateUserInfo(user).then((value) {
-                            Dialogs.showSnackbar(
-                                context, 'Profile Updated Successfully!');
-                            APIs.getSelfInfo().then((value) =>
-                                Navigator.of(context).pushAndRemoveUntil(
-                                    MaterialPageRoute(
-                                      builder: (_) => const HomeScreen(),
-                                    ),
-                                    (route) => false));
-                          });
+                          userProvider.updateUserData(updatedUser);
+                          Dialogs.showSnackbar(
+                              context, 'Profile Updated Successfully!');
                         }
                       },
                       icon: const Icon(Icons.edit, size: 28),

@@ -1,17 +1,16 @@
-//WWW
-
+import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:com.example.while_app/resources/components/message/apis.dart';
 import 'package:flutter/material.dart';
-import 'package:while_app/resources/components/communities/quiz/Screens/easy_questions_screen.dart';
-import 'package:while_app/resources/components/communities/quiz/Screens/hard_questions_screen.dart';
-import 'package:while_app/resources/components/communities/quiz/Screens/medium_questions_screen.dart';
-import 'package:while_app/resources/components/communities/quiz/Screens/results_screen.dart';
-import 'package:while_app/resources/components/communities/quiz/Screens/start_screen.dart';
-import 'package:while_app/resources/components/communities/quiz/community_detail_quiz_widget.dart';
-import 'package:while_app/resources/components/message/models/community_user.dart';
+import 'package:com.example.while_app/resources/components/communities/quiz/Screens/easy_questions_screen.dart';
+import 'package:com.example.while_app/resources/components/communities/quiz/Screens/hard_questions_screen.dart';
+import 'package:com.example.while_app/resources/components/communities/quiz/Screens/medium_questions_screen.dart';
+import 'package:com.example.while_app/resources/components/communities/quiz/Screens/start_screen.dart';
+import 'package:com.example.while_app/resources/components/message/models/community_user.dart';
 
 class Quiz extends StatefulWidget {
   const Quiz({super.key, required this.user, required this.category});
-  final CommunityUser user;
+  final Community user;
   final String category;
 
   @override
@@ -23,11 +22,39 @@ class Quiz extends StatefulWidget {
 class _QuizState extends State<Quiz> {
   List<String> selectedAnswers = [];
   Widget? activeScreeen;
-  int lives = 3;
   int correctAnswers = 0;
+  late int lives;
+  late DateTime? time;
+  late int easyQuestions;
+  late int attemptedEasyQuestion;
+  late int mediumQuestions;
+  late int attemptedMediumQuestion;
+  late int hardQuestions;
+  late int attemptedHardQuestion;
+
+  participantsData() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('communities')
+        .doc(widget.user.id)
+        .collection('participants')
+        .doc(APIs.me.id)
+        .get();
+    easyQuestions = await querySnapshot.data()!['easyQuestions'];
+    attemptedEasyQuestion =
+        await querySnapshot.data()!['attemptedEasyQuestion'];
+    mediumQuestions = await querySnapshot.data()!['mediumQuestions'];
+    attemptedMediumQuestion =
+        await querySnapshot.data()!['attemptedMediumQuestion'];
+    hardQuestions = await querySnapshot.data()!['hardQuestions'];
+    attemptedHardQuestion =
+        await querySnapshot.data()!['attemptedHardQuestion'];
+
+    setState(() {});
+  }
 
   @override
   void initState() {
+    participantsData();
     activeScreeen = StartScreen(switchScreen);
     super.initState();
   }
@@ -35,54 +62,34 @@ class _QuizState extends State<Quiz> {
   void switchScreen() {
     setState(
       () {
-        if (widget.category == 'Easy') {
+        if (widget.category == 'Easy' &&
+            widget.user.easyQuestions > attemptedEasyQuestion) {
+          log('easy');
           activeScreeen = EasyQuestionsScreen(
-            onSelectAnswer: chooseAnswer,
             user: widget.user,
-            correctAnswers: correctAnswers,
-            lives: lives,
+            attemptedEasyQuestion: attemptedEasyQuestion,
+            easyQuestions: easyQuestions,
           );
         }
-        if (widget.category == 'Medium') {
+        if (widget.category == 'Medium' &&
+            widget.user.mediumQuestions > attemptedMediumQuestion) {
+          log('medium');
           activeScreeen = MediumQuestionsScreen(
-            lives: lives,
-            onSelectAnswer: chooseAnswer,
             user: widget.user,
-            correctAnswers: correctAnswers,
+            attemptedMediumQuestion: attemptedMediumQuestion,
+            mediumQuestions: mediumQuestions,
           );
         }
-        if (widget.category == 'Hard') {
+        if (widget.category == 'Hard' &&
+            widget.user.hardQuestions > attemptedHardQuestion) {
           activeScreeen = HardQuestionsScreen(
-            onSelectAnswer: chooseAnswer,
+            attemptedHardQuestion: attemptedHardQuestion,
+            hardQuestions: hardQuestions,
             user: widget.user,
-            correctAnswers: correctAnswers,
-            lives: lives,
           );
         }
       },
     );
-  }
-
-  void restartQuiz() {
-    setState(() {
-      Navigator.pop(context);
-      //activeScreeen = QuizScreen(user: widget.user);
-      selectedAnswers = [];
-    });
-  }
-
-  void chooseAnswer(String answer, int lives, int correctAnswers) {
-    selectedAnswers.add(answer);
-
-    if (selectedAnswers.length == 10 || lives == 0) {
-      setState(() {
-        activeScreeen = ResultsScreen(
-          chosenAnswers: selectedAnswers,
-          onPressed: restartQuiz,
-          correctAnswers: correctAnswers,
-        );
-      });
-    }
   }
 
   @override

@@ -1,13 +1,15 @@
+import 'package:com.example.while_app/view/profile/user_leaderboard_screen.dart';
+import 'package:com.example.while_app/view_model/providers/user_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:while_app/resources/components/message/apis.dart';
-import 'package:while_app/view/profile/creator_profile_widget.dart';
-import 'package:while_app/view/profile/profile_data_widget.dart';
+import 'package:com.example.while_app/view/profile/creator_profile_widget.dart';
+import 'package:com.example.while_app/view/profile/profile_data_widget.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     const tabBarIcons = [
       Tab(
         icon: Icon(
@@ -61,15 +63,14 @@ class ProfileScreen extends StatelessWidget {
                 Expanded(
                   child: TabBarView(
                     children: [
-                      Center(
-                          child: CreatorProfile(
-                        userID: APIs.me.id,
-                      )),
-                      const Center(
-                          child: Text(
-                        "Become a Mentor",
-                        style: TextStyle(color: Colors.white),
-                      )),
+                      Consumer(builder: (context, ref, child) {
+                        final user = ref.watch(userDataProvider).userData;
+                        return Center(
+                            child: CreatorProfile(
+                          userID: user!.id,
+                        ));
+                      }),
+                      Center(child: LeaderboardScreen()),
                       const Center(
                           child: Text(
                         "Become a Freelancer",

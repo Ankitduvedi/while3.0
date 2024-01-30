@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
-import 'package:while_app/utils/routes/routes_name.dart';
-
+import 'package:com.example.while_app/utils/routes/routes_name.dart';
 import '../../view/profile/edit_profile_user.dart';
 
 class MoreOptions extends StatelessWidget {

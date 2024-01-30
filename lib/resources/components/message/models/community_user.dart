@@ -1,5 +1,5 @@
-class CommunityUser {
-  CommunityUser({
+class Community {
+  Community({
     required this.image,
     required this.about,
     required this.name,
@@ -14,6 +14,9 @@ class CommunityUser {
     required this.domain,
     required this.admin,
     required this.timeStamp,
+    required this.easyQuestions,
+    required this.mediumQuestions,
+    required this.hardQuestions,
   });
   late String image;
   late String about;
@@ -29,8 +32,11 @@ class CommunityUser {
   late String domain;
   late String admin;
   late String timeStamp;
+  late int easyQuestions;
+  late int mediumQuestions;
+  late int hardQuestions;
 
-  CommunityUser.fromJson(Map<String, dynamic> json) {
+  Community.fromJson(Map<String, dynamic> json) {
     image = json['image'] ?? '';
     about = json['about'] ?? '';
     name = json['name'] ?? '';
@@ -45,6 +51,9 @@ class CommunityUser {
     domain = json['domain'] ?? '';
     admin = json['admin'] ?? '';
     timeStamp = json['timeStamp'] ?? '';
+    easyQuestions = json['easyQuestions'] ?? '';
+    mediumQuestions = json['mediumQuestions'] ?? '';
+    hardQuestions = json['hardQuestions'] ?? '';
   }
 
   Map<String, dynamic> toJson() {
@@ -63,7 +72,28 @@ class CommunityUser {
     data['domain'] = domain;
     data['admin'] = admin;
     data['timeStamp'] = timeStamp;
-
+    data['easyQuestions'] = easyQuestions;
+    data['mediumQuestions'] = mediumQuestions;
+    data['hardQuestions'] = hardQuestions;
     return data;
+  }
+
+  factory Community.empty() {
+    return Community(
+      admin: '',
+      domain: '',
+      noOfUsers: '',
+      timeStamp: '',
+      type: '',
+      easyQuestions: 0,
+      image: '',
+      hardQuestions: 0,
+      about: '',
+      mediumQuestions: 0,
+      name: '',
+      createdAt: '',
+      id: '',
+      email: '',
+    );
   }
 }

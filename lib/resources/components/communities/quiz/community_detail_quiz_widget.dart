@@ -1,101 +1,163 @@
+import 'dart:developer';
+
+import 'package:com.example.while_app/resources/components/communities/quiz/Screens/timer.dart';
+import 'package:com.example.while_app/resources/components/communities/quiz/lives.dart';
 import 'package:flutter/material.dart';
-import 'package:while_app/resources/components/communities/quiz/add_quiz.dart';
-import 'package:while_app/resources/components/communities/quiz/quiz.dart';
-import 'package:while_app/resources/components/message/models/community_user.dart';
+import 'package:com.example.while_app/resources/components/communities/quiz/add_quiz.dart';
+import 'package:com.example.while_app/resources/components/communities/quiz/quiz.dart';
+import 'package:com.example.while_app/resources/components/message/models/community_user.dart';
 
-class QuizScreen extends StatelessWidget {
-  const QuizScreen({super.key, required this.user});
+class QuizScreen extends StatefulWidget {
+  QuizScreen({Key? key, required this.user}) : super(key: key);
+  final Community user;
 
-  final CommunityUser user;
-
-  _createQuiz(BuildContext context) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => AddQuestionScreen(user: user,)),
-  );
+  @override
+  State<QuizScreen> createState() => _QuizScreenState();
 }
 
+class _QuizScreenState extends State<QuizScreen> {
+  late int lives;
 
+  late DateTime? time;
+  late Duration timePassed;
+  renewLive() async {
+    lives = await LivesManager.getLives();
+    time = await LivesManager.getLastRenewalTime();
+    DateTime? lastRenewalTime = await LivesManager.getLastRenewalTime();
+    log('time');
+    log(lastRenewalTime.toString());
+    // Check if 24 hours have passed since the last renewal
+    if (lastRenewalTime != null) {
+      timePassed = DateTime.now().difference(lastRenewalTime);
+      log(timePassed.inSeconds.toString());
 
-void _easyQuiz(BuildContext context) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => Quiz(user: user, category: 'Easy'),),
-  );
-}
+      if (timePassed.inMinutes >= 5) {
+        await LivesManager.renewLives(); // Renew lives if 24 hours have passed
+      }
+    } else {
+      await LivesManager.renewLives();
+    }
+  }
 
-void _mediumQuiz(BuildContext context) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => Quiz(user: user, category: 'Medium'),),
-  );
-}
+  @override
+  void initState() {
+    renewLive();
+    super.initState();
+  }
 
-void _hardQuiz(BuildContext context) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => Quiz(user: user, category: 'Hard'),),
-  );
-}
+  void _createQuiz(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddQuestionScreen(user: widget.user),
+      ),
+    );
+  }
+
+  void _startQuiz(BuildContext context, String category) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => lives > 0
+            ? Quiz(user: widget.user, category: category)
+            : TimerDialog(timePassed: timePassed),
+      ),
+    );
+  }
+
+  Widget _buildQuizCard(
+      BuildContext context, String level, List<Color> gradientColors) {
+    int starCount;
+
+    switch (level.toLowerCase()) {
+      case 'easy':
+        starCount = 1;
+        break;
+      case 'medium':
+        starCount = 2;
+        break;
+      case 'hard':
+        starCount = 3;
+        break;
+      default:
+        starCount = 0;
+    }
+
+    return GestureDetector(
+      onTap: () => _startQuiz(context, level),
+      child: Card(
+        elevation: 5.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Container(
+          height: 150,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: gradientColors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (int i = 0; i < starCount; i++)
+                    const Icon(
+                      Icons.star,
+                      color: Colors.white,
+                      size: 40.0,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8.0),
+              Text(
+                level,
+                style: const TextStyle(fontSize: 24, color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: ListView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
-        children: [
-          GestureDetector(
-            onTap: () => _easyQuiz(context),
-            child: const QuizTile(level: 'Easy', gradientColors: [Color.fromARGB(255, 87, 208, 235), Color.fromARGB(255, 107, 233, 112)])),
-          GestureDetector(
-            onTap: () => _mediumQuiz(context),
-            child: const QuizTile(level: 'Medium', gradientColors: [Color.fromARGB(255, 231, 198, 152), Colors.yellow])),
-          GestureDetector(
-            onTap: () => _hardQuiz(context),
-            child: const QuizTile(level: 'Hard', gradientColors: [Color.fromARGB(255, 238, 148, 142), Color.fromARGB(255, 227, 16, 16)])),
-        ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildQuizCard(context, 'Easy', [
+              const Color.fromARGB(255, 87, 208, 235),
+              const Color.fromARGB(255, 107, 233, 112),
+            ]),
+            _buildQuizCard(context, 'Medium', [
+              const Color.fromARGB(255, 231, 198, 152),
+              Colors.yellow,
+            ]),
+            _buildQuizCard(context, 'Hard', [
+              const Color.fromARGB(255, 238, 148, 142),
+              const Color.fromARGB(255, 227, 16, 16),
+            ]),
+            _buildQuizCard(context, 'Dashboard', [
+              const Color.fromARGB(255, 75, 0, 130),
+              const Color.fromARGB(255, 123, 104, 238),
+            ]),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _createQuiz(context),
         child: const Icon(Icons.add),
-    ),
-      );
-  }
-}
-
-class QuizTile extends StatelessWidget {
-  final String level;
-  final List<Color> gradientColors;
-
-  const QuizTile({super.key, required this.level, required this.gradientColors});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 150,
-      margin: const EdgeInsets.symmetric(vertical: 10.0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: gradientColors,
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-        borderRadius: BorderRadius.circular(10.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          level,
-          style: const TextStyle(fontSize: 30, color: Colors.white, fontWeight: FontWeight.bold),
-        ),
       ),
     );
   }

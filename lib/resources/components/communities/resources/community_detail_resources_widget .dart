@@ -1,12 +1,19 @@
+
+import 'package:com.example.while_app/resources/components/communities/resources/imageview.dart';
+import 'package:com.example.while_app/resources/components/communities/resources/pdfview.dart';
+import 'package:com.example.while_app/resources/components/communities/resources/videoplay.dart';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+
 import 'package:while_app/resources/components/communities/resources/imageview.dart';
 import 'package:while_app/resources/components/communities/resources/videoplay.dart';
 import 'package:while_app/resources/components/communities/resources/pdfview.dart';
 import 'package:while_app/resources/components/communities/resources/resource_image_viewer.dart';
+
 
 class CommunityDetailResources extends StatefulWidget {
   const CommunityDetailResources({Key? key}) : super(key: key);

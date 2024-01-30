@@ -182,7 +182,7 @@ class AddCommunityScreen {
                             DateTime.now().millisecondsSinceEpoch.toString();
                         final String id = uuid.v4();
                         // final time = DateTime.now().millisecondsSinceEpoch.toString();
-                        final CommunityUser community = CommunityUser(
+                        final Community community = Community(
                             image: '',
                             about: about,
                             name: name,
@@ -193,6 +193,9 @@ class AddCommunityScreen {
                             noOfUsers: '1',
                             domain: domain,
                             timeStamp: time,
+                            easyQuestions: 0,
+                            hardQuestions: 0,
+                            mediumQuestions: 0,
                             admin: APIs.me.name);
                         APIs.addCommunities(community, File(image!.path));
 

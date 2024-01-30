@@ -5,20 +5,20 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class UserDataProvider with ChangeNotifier {
+class FollowerProvider with ChangeNotifier {
   ChatUser _userData = ChatUser.empty();
   final auth = FirebaseAuth.instance.currentUser!;
 
   ChatUser? get userData => _userData;
 
-  UserDataProvider() {
-    _initData();
+  FollowerProvider(String userId) {
+    _initData(userId);
   }
 
-  void _initData() {
+  void _initData(String userId) {
     FirebaseFirestore.instance
         .collection('users')
-        .doc(auth.uid)
+        .doc(userId)
         .snapshots()
         .listen((snapshot) {
       if (snapshot.exists) {
@@ -43,6 +43,6 @@ class UserDataProvider with ChangeNotifier {
   }
 }
 
-final userDataProvider = ChangeNotifierProvider<UserDataProvider>((ref) {
-  return UserDataProvider();
+final userDataProvider = ChangeNotifierProvider<FollowerProvider>((ref) {
+  return FollowerProvider('');
 });

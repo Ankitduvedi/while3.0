@@ -1,23 +1,23 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
-import 'package:while_app/main.dart';
-import 'package:while_app/resources/components/message/apis.dart';
-import 'package:while_app/resources/components/message/helper/dialogs.dart';
+import 'package:com.example.while_app/main.dart';
+import 'package:com.example.while_app/resources/components/message/apis.dart';
+import 'package:com.example.while_app/resources/components/message/helper/dialogs.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class StoryScreen extends StatefulWidget {
-  const StoryScreen({Key? key}) : super(key: key);
+class ConnectScreen extends ConsumerStatefulWidget {
+  const ConnectScreen({Key? key}) : super(key: key);
 
   @override
-  StoryScreenState createState() => StoryScreenState();
+  ConnectScreenState createState() => ConnectScreenState();
 }
 
-class StoryScreenState extends State<StoryScreen>
+class ConnectScreenState extends ConsumerState<ConnectScreen>
     with SingleTickerProviderStateMixin {
   late Stream<QuerySnapshot> peopleStream;
   late Stream<QuerySnapshot> pagesStream;
@@ -46,17 +46,17 @@ class StoryScreenState extends State<StoryScreen>
     super.dispose();
   }
 
-  _getBytes(imageUrl) async {
-    try {
-      final ByteData data =
-          await NetworkAssetBundle(Uri.parse(imageUrl)).load(imageUrl);
-      final bytes = data.buffer.asUint8List();
-      return base64Encode(bytes);
-    } catch (error) {
-      // print("Error getting bytes: $error");
-      return null;
-    }
-  }
+  // _getBytes(imageUrl) async {
+  //   try {
+  //     final ByteData data =
+  //         await NetworkAssetBundle(Uri.parse(imageUrl)).load(imageUrl);
+  //     final bytes = data.buffer.asUint8List();
+  //     return base64Encode(bytes);
+  //   } catch (error) {
+  //     // print("Error getting bytes: $error");
+  //     return null;
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -148,17 +148,18 @@ class StoryScreenState extends State<StoryScreen>
                           filteredPeople[index].data() as Map<String, dynamic>;
 
                       return ListTile(
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(mq.height * .03),
-                          child: CachedNetworkImage(
-                            width: mq.height * .055,
-                            height: mq.height * .055,
-                            fit: BoxFit.fill,
-                            imageUrl: person['image'],
-                            errorWidget: (context, url, error) =>
-                                const CircleAvatar(
-                                    child: Icon(CupertinoIcons.person)),
-                          ),
+                        leading: GestureDetector(
+                          // onTap: () {
+                          //   showDialog(
+                          //       context: context,
+                          //       builder: (_) => ProfileDialog(user: person));
+                          // },
+                          child: ClipRRect(
+                              borderRadius:
+                                  BorderRadius.circular(mq.height * .03),
+                              child: Image.network(
+                                person['image'],
+                              )),
                         ),
                         title: Text(
                           person['name'],

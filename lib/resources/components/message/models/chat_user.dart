@@ -16,6 +16,10 @@ class ChatUser {
       required this.profession,
       required this.designation,
       required this.follower,
+      required this.easyQuestions,
+      required this.mediumQuestions,
+      required this.hardQuestions,
+      required this.lives,
       required this.following});
   late String image;
   late String about;
@@ -34,6 +38,10 @@ class ChatUser {
   late String designation;
   late int following;
   late int follower;
+  late int easyQuestions;
+  late int mediumQuestions;
+  late int hardQuestions;
+  late int lives;
 
   ChatUser.fromJson(Map<String, dynamic> json) {
     image = json['image'] ?? '';
@@ -53,6 +61,10 @@ class ChatUser {
     designation = json['designation'] ?? '';
     following = json['following'] ?? 0;
     follower = json['follower'] ?? 0;
+    easyQuestions = json['easyQuestions'] ?? 0;
+    mediumQuestions = json['mediumQuestions'] ?? 0;
+    hardQuestions = json['hardQuestions'] ?? 0;
+    lives = json['lives'] ?? 0;
   }
 
   Map<String, dynamic> toJson() {
@@ -74,11 +86,16 @@ class ChatUser {
     data['designation'] = designation;
     data['following'] = following;
     data['follower'] = follower;
-
+    data['easyQuestions'] = easyQuestions;
+    data['mediumQuestions'] = mediumQuestions;
+    data['hardQuestions'] = hardQuestions;
+    data['lives'] = lives;
     return data;
   }
+
   Map<String, dynamic> toMap() {
     return {
+      'lives': lives,
       'image': image,
       'about': about,
       'name': name,
@@ -96,12 +113,20 @@ class ChatUser {
       'designation': designation,
       'follower': follower,
       'following': following,
+      'easyQuestions': easyQuestions,
+      'mediumQuestions': mediumQuestions,
+      'hardQuestions': hardQuestions,
     };
   }
+
   factory ChatUser.empty() {
     return ChatUser(
+        lives: 0,
+        easyQuestions: 0,
         image: '',
+        hardQuestions: 0,
         about: '',
+        mediumQuestions: 0,
         name: '',
         createdAt: '',
         isOnline: false,
